@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Exam Time Calculator</title>
+    <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
     <h1>Calculate Exam Times</h1>
@@ -15,6 +16,10 @@
         <input required id="exam-duration" type="text"/>
       </div>
       <button type="submit">submit</button>
+      <div>Ending times are written in red</div>
+      <h2>Grouped by Bonus</h2>
+      <ul id="bonus"></ul>
+      <h2>Chronological ordering</h2>
       <ul id="chronological"></ul>
     </form>
     <script src="./index.js"></script>

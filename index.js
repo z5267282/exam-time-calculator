@@ -23,7 +23,7 @@ class Time {
     }
 
     toStr() {
-        return `${String(this.hh).padStart(2, "0")}:${String(this.mm).padStart(2, "0")}:`
+        return `${String(this.hh).padStart(2, "0")}:${String(this.mm).padStart(2, "0")}`
     }
 }
 
@@ -43,8 +43,8 @@ class Duration {
     }
 
     computeBonus(minsPerHour) {
-        rate = Math.floor(minsPerHour / 60);
-        return new Duration(this.mins * rate);
+        const rate = minsPerHour / 60;
+        return new Duration(this.mins + Math.floor(this.mins * rate));
     }
 }
 
@@ -63,7 +63,7 @@ class ExamTime {
      */
     compReminders() {
         const reminders = [
-            [Math.floor(this.duration.mins) / 2, "half time"],
+            [Math.floor(this.duration.mins / 2), "half time"],
             [this.duration.mins - 30, "30 mins"],
             [this.duration.mins - 10, "10 mins"],
             [this.duration.mins, "end"]
@@ -74,6 +74,20 @@ class ExamTime {
             const time = this.start.addDuration(duration);
             return `${time.toStr()} - ${desc}`
         });
+    }
+}
+
+class ExamWithBonus {
+    constructor(start, duration, bonus) {
+        this.exam = new ExamTime(start, duration.computeBonus(bonus));
+        this.bonus = bonus;
+    }
+
+    compReminders() {
+        return this
+            .exam
+            .compReminders()
+            .map((old) => `${old} (bonus +${this.bonus})`);
     }
 }
 
@@ -113,15 +127,42 @@ document.getElementById("exam-inputs")
 
         const exam = new ExamTime(start, duration);
 
-        document
-            .getElementById("chronological")
-            .replaceChildren();
+        const exams = [
+            new ExamWithBonus(start, duration, 0),
+            new ExamWithBonus(start, duration, 15),
+            new ExamWithBonus(start, duration, 30),
+            new ExamWithBonus(start, duration, 45),
+        ];
 
-        exam
-            .compReminders()
+        const times = exams
+            .map((exam) => exam.compReminders())
+            .flatMap(times => [...times])
+
+        document
+            .getElementById("bonus")
+            .replaceChildren();
+        times
             .forEach((reminder) => {
                 const node = document.createElement("li");
                 node.textContent = reminder;
+                if (reminder.includes("end")) node.classList.add("red");
+                document
+                    .getElementById("bonus")
+                    .appendChild(node);
+                });
+
+        document
+            .getElementById("chronological")
+            .replaceChildren();
+        exams
+            .sort()
+            .map((exam) => exam.compReminders())
+            .flatMap(times => [...times])
+            .sort()
+            .forEach((reminder) => {
+                const node = document.createElement("li");
+                node.textContent = reminder;
+                if (reminder.includes("end")) node.classList.add("red");
                 document
                     .getElementById("chronological")
                     .appendChild(node);
